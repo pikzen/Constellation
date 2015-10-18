@@ -47,7 +47,8 @@ function setup(amount)
 			y: y,
 			cx: x,
 			cy: y,
-			rx: Math.floor(Math.random() * (MAX_DISTANCE - MIN_DISTANCE) + MIN_DISTANCE),
+			speed: Math.floor(Math.random() * 6000) + 2000,
+			rx: Math.floor(Math.random() * (MAX_DISTANCE - MIN_DISTANCE) + MIN_DISTANCE) * (Math.floor(Math.random() * 2) == 1 ? 1 : -1),
 			ry: Math.floor(Math.random() * (MAX_DISTANCE - MIN_DISTANCE) + MIN_DISTANCE),
 			sizeModifier: Math.floor(Math.random() * 2) + 1 * (Math.floor(Math.random() * 2) == 1 ? 1 : -1),
 			color: pointColor(),
@@ -109,10 +110,9 @@ function draw(timestep) {
 // Animation loop
 // Moves points around
 function animate(timestep) {
-	var time = timestep / 5000;
 	for (var i = 0; i < pointCount; i++) {
-		points[i].x = points[i].cx + points[i].rx * Math.cos(time);
-		points[i].y = points[i].cy + points[i].ry * Math.sin(time);
+		points[i].x = points[i].cx + points[i].rx * Math.cos(timestep / points[i].speed);
+		points[i].y = points[i].cy + points[i].ry * Math.sin(timestep / points[i].speed);
 	}
 }
 
