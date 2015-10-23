@@ -4,6 +4,13 @@ var points = [];
 var batchedPoints = [];
 var pointCount = 200;
 var _canRun = true;
+
+// Let's stop using all the cpu time :^)
+var targetFPS = 60;
+var now;
+var then = 0;
+var refreshInterval = 1000/targetFPS;
+
 var canvas = document.getElementById("constellation");
 var context = canvas.getContext("2d");
 context.lineWidth = 1;
@@ -88,42 +95,42 @@ function pointColor() {
 // Draw loop
 // Draws points, finds out which lines needs to be drawn then draws them
 function draw(timestep) {
-	// Clear the render target
-	context.fillStyle = "#222";
-	context.fillRect(0, 0, canvas.width, canvas.height);
+		// Clear the render target
+		context.fillStyle = "#222";
+		context.fillRect(0, 0, canvas.width, canvas.height);
 
-	// O(n²), nice.
-	// Could apparently be replaced with matrix math to achieve O(n)
+		// O(n²), nice.
+		// Could apparently be replaced with matrix math to achieve O(n)
 
 
-	for (var batch = 0; batch < batchedPoints.length; batch++) {
-		context.fillStyle = batchedPoints[batch][0].color;
-		context.strokeStyle = batchedPoints[batch][0].color;
-		for (var i = 0; i < batchedPoints[batch].length; i++) {
-			// Points are drawn with a filled circle
-			context.beginPath();
-			context.arc(batchedPoints[batch][i].x, batchedPoints[batch][i].y, POINT_RADIUS + batchedPoints[batch][i].sizeModifier, 0, Math.PI*2, false);
-			context.fill();
-			context.closePath();
-		}
+		for (var batch = 0; batch < batchedPoints.length; batch++) {
+			context.fillStyle = batchedPoints[batch][0].color;
+			context.strokeStyle = batchedPoints[batch][0].color;
+			for (var i = 0; i < batchedPoints[batch].length; i++) {
+				// Points are drawn with a filled circle
+				context.beginPath();
+				context.arc(batchedPoints[batch][i].x, batchedPoints[batch][i].y, POINT_RADIUS + batchedPoints[batch][i].sizeModifier, 0, Math.PI*2, false);
+				context.fill();
+				context.closePath();
+			}
 
-		for (var i = 0; i < batchedPoints[batch].length; i++) {
-			for (var j = 0; j < pointCount; j++) {
-				// Find out the distance
-				var dX = Math.floor(batchedPoints[batch][i].x - points[j].x);
-				var dY = Math.floor(batchedPoints[batch][i].y - points[j].y);
-				var distance = Math.sqrt(dX*dX + dY*dY);
+			for (var i = 0; i < batchedPoints[batch].length; i++) {
+				for (var j = 0; j < pointCount; j++) {
+					// Find out the distance
+					var dX = Math.floor(batchedPoints[batch][i].x - points[j].x);
+					var dY = Math.floor(batchedPoints[batch][i].y - points[j].y);
+					var distance = Math.sqrt(dX*dX + dY*dY);
 
-				if (distance < LINE_TRIGGER && i != j) {
-					context.beginPath();
-					context.moveTo(batchedPoints[batch][i].x + 0.5, batchedPoints[batch][i].y);
-					context.lineTo(points[j].x + 0.5, points[j].y);
-					context.stroke();
-					context.closePath();
+					if (distance < LINE_TRIGGER && i != j) {
+						context.beginPath();
+						context.moveTo(batchedPoints[batch][i].x + 0.5, batchedPoints[batch][i].y);
+						context.lineTo(points[j].x + 0.5, points[j].y);
+						context.stroke();
+						context.closePath();
+					}
 				}
 			}
 		}
-	}
 }
 
 // Animation loop
@@ -136,10 +143,18 @@ function animate(timestep) {
 }
 
 function renderLoop(timestep) {
-	draw(timestep);
-	animate(timestep); // Prepare for the next render
-
 	requestAnimationFrame(renderLoop);
+
+	now = timestep;
+	var delta = now - then;
+
+	// Lock animation & render to 60FPS
+	if (delta > refreshInterval) {
+		draw(timestep);
+		animate(timestep); // Prepare for the next render
+
+		then = now - (delta % refreshInterval);
+	}
 }
 setup(500)
 
