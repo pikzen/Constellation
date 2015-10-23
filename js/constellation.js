@@ -2,7 +2,6 @@
 
 var points = [];
 var batchedPoints = [];
-var pointCount = 200;
 var _canRun = true;
 
 // Let's stop using all the cpu time :^)
@@ -16,13 +15,20 @@ var context = canvas.getContext("2d");
 context.lineWidth = 1;
 context.translate(0.5, 0.5); // Fixes lines not being 1px wide
 
-var MAX_DISTANCE = 400;
+// Let's consider 1920*1080 the default resolution to scale everything
+var scaleRatio = canvas.clientWidth / 1920 * canvas.clientHeight / 1080;
+var MAX_DISTANCE = Math.floor(400 * scaleRatio);
 var MIN_DISTANCE = 50;
 var POINT_RADIUS = 3;
 var LINE_TRIGGER = 60;
 
 var width = canvas.clientWidth + MAX_DISTANCE;
 var height = canvas.clientHeight + MAX_DISTANCE;
+
+// the amount of points is tied to the canvas size so that it looks roughly the same everywhere
+// We also want at least 100 points.
+// The formula under there is pure magic.
+var pointCount = Math.floor(width / 15 + height / 15 + 200 * scaleRatio);
 function setup(amount)
 {
 	pointCount = amount || pointCount;
@@ -41,9 +47,10 @@ function setup(amount)
 	// Each point has:
 	//  - An origin (cx, cy) that doesn't change
 	//  - A rendered position (x, y) that rotates on a circle
-	//  - A pair of radius (rx, ry), defining the ellipse around which the point rotates
+	//  - A pair of radius (rx, ry), defining the ellipse around which the point rotates, as well as the direction
 	//  - A color
-	//  - A size modifier, that gets added to the reguler point size
+	//  - A size modifier, that gets added to the regular point size
+	//  - A speed, which is how often it updates
 	// x, y Can be generated anywhere between -MAX_DISTANCE/2 and SCREEN_HEIGHT so we can cover the entire screen
 
 	for (var i = 0; i < pointCount; i++)
@@ -156,7 +163,7 @@ function renderLoop(timestep) {
 		then = now - (delta % refreshInterval);
 	}
 }
-setup(500)
+setup()
 
 if (_canRun)
 	requestAnimationFrame(renderLoop);
