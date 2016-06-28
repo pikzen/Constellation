@@ -124,11 +124,13 @@ function draw(timestep) {
 			for (var i = 0; i < batchedPoints[batch].length; i++) {
 				for (var j = 0; j < pointCount; j++) {
 					// Find out the distance
-					var dX = Math.floor(batchedPoints[batch][i].x - points[j].x);
-					var dY = Math.floor(batchedPoints[batch][i].y - points[j].y);
-					var distance = Math.sqrt(dX*dX + dY*dY);
+					// Coordinates are always integers
+					var dX = batchedPoints[batch][i].x - points[j].x;
+					var dY = batchedPoints[batch][i].y - points[j].y;
+					var distance = dX*dX + dY*dY;
 
-					if (distance < LINE_TRIGGER && i != j) {
+					// Square root is expensive. Squaring is cheap.
+					if (distance < LINE_TRIGGER*LINE_TRIGGER && i != j) {
 						context.beginPath();
 						context.moveTo(batchedPoints[batch][i].x + 0.5, batchedPoints[batch][i].y);
 						context.lineTo(points[j].x + 0.5, points[j].y);
