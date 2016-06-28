@@ -4,12 +4,6 @@ var points = [];
 var batchedPoints = [];
 var _canRun = true;
 
-// Let's stop using all the cpu time :^)
-var targetFPS = 60;
-var now;
-var then = 0;
-var refreshInterval = 1000/targetFPS;
-
 var canvas = document.getElementById("constellation");
 var context = canvas.getContext("2d");
 context.lineWidth = 1;
@@ -154,16 +148,8 @@ function animate(timestep) {
 function renderLoop(timestep) {
 	requestAnimationFrame(renderLoop);
 
-	now = timestep;
-	var delta = now - then;
-
-	// Lock animation & render to 60FPS
-	if (delta > refreshInterval) {
-		draw(timestep);
-		animate(timestep); // Prepare for the next render
-
-		then = now - (delta % refreshInterval);
-	}
+	draw(timestep);
+	animate(timestep); // Prepare for the next render
 }
 setup()
 
