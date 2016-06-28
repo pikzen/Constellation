@@ -7,7 +7,7 @@ var _canRun = true;
 var canvas = document.getElementById("constellation");
 var context = canvas.getContext("2d");
 context.lineWidth = 1;
-context.translate(0.5, 0.5); // Fixes lines not being 1px wide
+//context.translate(0.5, 0.5); // Fixes lines not being 1px wide
 
 // Let's consider 1920*1080 the default resolution to scale everything
 var scaleRatio = canvas.clientWidth / 1920 * canvas.clientHeight / 1080;
@@ -92,6 +92,9 @@ function resizeCanvas() {
 function pointColor() {
 	return ["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.3)", "rgba(255, 255, 255, 0.5)", "rgba(255, 255, 255, 0.7)"][Math.floor(Math.random() * 4)];
 }
+var batch = 0;
+var i = 0;
+var j = 0;
 
 // Draw loop
 // Draws points, finds out which lines needs to be drawn then draws them
@@ -102,12 +105,10 @@ function draw(timestep) {
 
 		// O(n²), nice.
 		// Could apparently be replaced with matrix math to achieve O(n)
-
-
-		for (var batch = 0; batch < batchedPoints.length; batch++) {
+		for (batch = 0; batch < batchedPoints.length; batch++) {
 			context.fillStyle = batchedPoints[batch][0].color;
 			context.strokeStyle = batchedPoints[batch][0].color;
-			for (var i = 0; i < batchedPoints[batch].length; i++) {
+			for (i = 0; i < batchedPoints[batch].length; i++) {
 				// Points are drawn with a filled circle
 				context.beginPath();
 				context.arc(batchedPoints[batch][i].x, batchedPoints[batch][i].y, POINT_RADIUS + batchedPoints[batch][i].sizeModifier, 0, Math.PI*2, false);
@@ -115,16 +116,11 @@ function draw(timestep) {
 				context.closePath();
 			}
 
-			for (var i = 0; i < batchedPoints[batch].length; i++) {
-				for (var j = 0; j < pointCount; j++) {
-					// Find out the distance
-					// Coordinates are always integers
-					var dX = batchedPoints[batch][i].x - points[j].x;
-					var dY = batchedPoints[batch][i].y - points[j].y;
-					var distance = dX*dX + dY*dY;
-
+			for (i = 0; i < batchedPoints[batch].length; i++) {
+				for (j = 0; j < pointCount; j++) {
 					// Square root is expensive. Squaring is cheap.
-					if (distance < LINE_TRIGGER*LINE_TRIGGER && i != j) {
+					if ((batchedPoints[batch][i].x - points[j].x) * (batchedPoints[batch][i].x - points[j].x) + (batchedPoints[batch][i].y - points[j].y) * (batchedPoints[batch][i].y - points[j].y) < LINE_TRIGGER*LINE_TRIGGER
+						   && i != j) {
 						context.beginPath();
 						context.moveTo(batchedPoints[batch][i].x + 0.5, batchedPoints[batch][i].y);
 						context.lineTo(points[j].x + 0.5, points[j].y);
